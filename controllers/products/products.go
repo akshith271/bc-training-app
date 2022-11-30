@@ -3,34 +3,35 @@ package Products
 import (
 	"encoding/json"
 	"net/http"
-	db "sample/git/connection"
 	"sample/git/models"
 
 	"github.com/gorilla/mux"
+	"github.com/jinzhu/gorm"
 )
 
-func GetProducts(w http.ResponseWriter, r *http.Request) {
-	db := db.ConnectDB()
+type Server struct {
+	Db *gorm.DB
+}
+
+func (s Server) GetProducts(w http.ResponseWriter, r *http.Request) {
 	products := []models.Product{}
-	db.Find(&products)
+	s.Db.Find(&products)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(products)
 }
 
-func GetProduct(w http.ResponseWriter, r *http.Request) {
-	db := db.ConnectDB()
+func (s Server) GetProduct(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	product := []models.Product{}
 	params := mux.Vars(r)["productid"]
-	db.Find(&product).First(&product, params)
+	s.Db.Find(&product).First(&product, params)
 	json.NewEncoder(w).Encode(product)
 }
 
-func CreateProduct(w http.ResponseWriter, r *http.Request) {
-	db := db.ConnectDB()
+func (s Server) CreateProduct(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	product := models.Product{}
 	json.NewDecoder(r.Body).Decode(&product)
-	db.Save(&product)
+	s.Db.Save(&product)
 	json.NewEncoder(w).Encode(product)
 }

@@ -3,27 +3,29 @@ package reviews
 import (
 	"encoding/json"
 	"net/http"
-	db "sample/git/connection"
 	"sample/git/models"
 
 	"github.com/gorilla/mux"
+	"github.com/jinzhu/gorm"
 )
 
-func CreateReview(w http.ResponseWriter, r *http.Request) {
-	db := db.ConnectDB()
+type Server struct {
+	Db *gorm.DB
+}
+
+func (s Server) CreateReview(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	review := models.Rating{}
 	json.NewDecoder(r.Body).Decode(&review)
-	db.Save(&review)
+	s.Db.Save(&review)
 	json.NewEncoder(w).Encode(review)
 }
 
-func GetReviews(w http.ResponseWriter, r *http.Request) {
-	db := db.ConnectDB()
+func (s Server) GetReviews(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	reviews := []models.Rating{}
 	params := mux.Vars(r)["productid"]
-	db.Where("product_id=?", params).Find(&reviews)
+	s.Db.Where("product_id=?", params).Find(&reviews)
 	result := []string{}
 	for _, value := range reviews {
 		result = append(result, value.Review)
@@ -31,13 +33,12 @@ func GetReviews(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(result)
 }
 
-func DeleteReview(w http.ResponseWriter, r *http.Request) {
-	db := db.ConnectDB()
+func (s Server) DeleteReview(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	ratings := []models.Rating{}
 	productid := mux.Vars(r)["product_id"]
 	ratingid := mux.Vars(r)["name"]
-	db.Where("name = ? AND product_id = ?", ratingid, productid).Delete(&ratings)
+	s.Db.Where("name = ? AND product_id = ?", ratingid, productid).Delete(&ratings)
 	json.NewEncoder(w).Encode(&ratings)
 
 }
