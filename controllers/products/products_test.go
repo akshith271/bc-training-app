@@ -1,7 +1,6 @@
 package Products
 
 import (
-	// model "ecommerce/db_model"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -21,20 +20,20 @@ func (*Server) CheckErr(err error) {
 }
 func TestGetProducts(t *testing.T) {
 
-	req, err := http.NewRequest("GET", "/products", nil)
+	request, err := http.NewRequest("GET", "/products", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	mockcntrl := gomock.NewController(t)
-	defer mockcntrl.Finish()
+	mockcontroller := gomock.NewController(t)
+	defer mockcontroller.Finish()
 
-	mockProd := mocks.NewMockDbProducts(mockcntrl)
+	mockProd := mocks.NewMockDbProducts(mockcontroller)
 	testProd := Server{Db: mockProd}
 
 	product1 := models.Product{
 		ProductName:        "Asus Zenbook 11",
-		ProductDescription: "This Laptop is with Intel i7 12th gen processor and it has 120hz High refresh rate",
+		ProductDescription: "This is a good laptop",
 		ProductCategory:    "Laptop",
 		ProductQuantity:    "2",
 		ProductPrice:       "88000",
@@ -48,23 +47,23 @@ func TestGetProducts(t *testing.T) {
 	mockProducts := []models.Product{product1}
 
 	mockProd.EXPECT().GetProducts().Return(mockProducts, nil)
-	rr := httptest.NewRecorder()
+	recorder := httptest.NewRecorder()
 	handler := http.HandlerFunc(testProd.GetProducts)
-	handler.ServeHTTP(rr, req)
+	handler.ServeHTTP(recorder, request)
 
 	// Checking status code
-	if status := rr.Code; status != http.StatusOK {
+	if status := recorder.Code; status != http.StatusOK {
 		t.Errorf("handler returned wrong status code: got %v want %v",
 			status, http.StatusOK)
 	}
 
 	// Checking body
 	var got JsonResponse
-	json.NewDecoder(rr.Body).Decode(&got)
+	json.NewDecoder(recorder.Body).Decode(&got)
 	testProd.CheckErr(err)
 	product2 := models.Product{
 		ProductName:        "Asus Zenbook 11",
-		ProductDescription: "This Laptop is with Intel i7 12th gen processor and it has 120hz High refresh rate",
+		ProductDescription: "This is a good laptop",
 		ProductCategory:    "Laptop",
 		ProductQuantity:    "2",
 		ProductPrice:       "88000",
